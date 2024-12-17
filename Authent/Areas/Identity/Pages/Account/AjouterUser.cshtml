@@ -1,0 +1,74 @@
+﻿@page
+@model Authent.Areas.Identity.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Ajouter un utilisateur";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- Afficher le message de succès -->
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success" role="alert">
+                @Model.SuccessMessage
+            </div>
+        }
+
+        <!-- Formulaire pour ajouter un utilisateur -->
+        <form id="addUserForm" method="post">
+            <h2>Ajouter un nouvel utilisateur</h2>
+            <hr />
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+            <!-- Champ pour l'email -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <!-- Champ pour le mot de passe -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.Password">Mot de passe</label>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            <!-- Champ pour confirmer le mot de passe -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.ConfirmPassword">Confirmer le mot de passe</label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <!-- Liste déroulante pour sélectionner un rôle -->
+            <div class="form-floating mb-3">
+                <select asp-for="Input.Role" class="form-control" aria-required="true">
+                    <option value="">-- Sélectionnez un rôle --</option>
+                    @if (Model.Roles != null && Model.Roles.Any())
+                    {
+                        @foreach (var role in Model.Roles)
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="">Aucun rôle disponible</option>
+                    }
+                </select>
+                <label asp-for="Input.Role">Rôle</label>
+                <span asp-validation-for="Input.Role" class="text-danger"></span>
+            </div>
+
+            <!-- Bouton de soumission -->
+            <button id="addUserSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Ajouter l'utilisateur</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
