@@ -10,11 +10,19 @@ namespace Authent
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configuration de la base de donn�es
+            // Configuration de la base de données
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                                   ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+                         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+             options.UseSqlServer(connectionString, sqlOptions =>
+             {
+                 sqlOptions.EnableRetryOnFailure(
+                     maxRetryCount: 10, // Nombre maximal de tentatives avant l'échec
+                     maxRetryDelay: TimeSpan.FromSeconds(20), // Délai maximal entre les tentatives
+                     errorNumbersToAdd: null); // Nombres d'erreurs supplémentaires à considérer comme transitoires
+             }));
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             // Configuration d'Identity
@@ -45,26 +53,17 @@ namespace Authent
             // Routes
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Redirect}/{action=Index}/{id?}"); // Par d�faut, redirige vers RedirectController
+                pattern: "{controller=Redirect}/{action=Index}/{id?}"); // Par défaut, redirige vers RedirectController
 
             app.MapRazorPages();
 
-            // Initialisation des r�les
+            // Initialisation des rôles et de l'utilisateur admin
             using (var scope = app.Services.CreateScope())
             {
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var services = scope.ServiceProvider;
 
-                // Ajouter les r�les n�cessaires
-                var roles = new[] { "Admin", "Manager", "Editor", "Contributor", "Viewer", "Member" };
-
-                foreach (var role in roles)
-                {
-                    if (!await roleManager.RoleExistsAsync(role))
-                    {
-                        await roleManager.CreateAsync(new IdentityRole(role));
-                    }
-
-                }
+                // Ajouter les rôles nécessaires et créer l'admin user
+                await DataSeeder.SeedRolesAndAdminUser(services);
             }
 
             app.Run();
